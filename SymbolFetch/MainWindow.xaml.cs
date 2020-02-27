@@ -79,6 +79,22 @@ namespace SymbolFetch
             //throw new NotImplementedException();
         }
 
+        private void btnopenDir_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+            {
+                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                if (Directory.Exists(dialog.SelectedPath))
+                {
+                    var binaries = new[] { "*.dll", "*.exe" }.SelectMany(ext =>
+                    {
+                        return Directory.EnumerateFiles(dialog.SelectedPath, ext);
+                    });
+                    var fileNames = binaries.ToArray();
+                    PopulateFileList(fileNames);
+                }
+            }
+        }
 
         private void btnStart_Click(object sender, RoutedEventArgs e)
         {
@@ -109,26 +125,32 @@ namespace SymbolFetch
         private void btnopenFile_Click(object sender, RoutedEventArgs e)
         {
             var fileDialog = new OpenFileDialog();
-            var listOfFiles = new List<string>();
             fileDialog.Multiselect = true;
             fileDialog.Filter = "DLL|*.dll|Executable Files| *.exe";
             if (fileDialog.ShowDialog() == true)
             {
-                foreach (var item in fileDialog.FileNames)
-                {
-                    listOfFiles.Add(item);
-                }
-                pBarTotalProgress.Value = 0;
-                pBarFileProgress.Value = 0;
-
-                lblStatus.Content = "Status: ";
-                lblFileSize.Content = "File Size: ";
-                lblFileProgress.Content = "-";
-                lblTotalProgress.Content = "-";
-
-                lstFiles.Visibility = Visibility.Visible;
-                lstFiles.ItemsSource = listOfFiles;
+                PopulateFileList(fileDialog.FileNames);
             }
+        }
+
+        private void PopulateFileList(string[] fileNames)
+        {
+            var listOfFiles = new List<string>();
+
+            foreach (var item in fileNames)
+            {
+                listOfFiles.Add(item);
+            }
+            pBarTotalProgress.Value = 0;
+            pBarFileProgress.Value = 0;
+
+            lblStatus.Content = "Status: ";
+            lblFileSize.Content = "File Size: ";
+            lblFileProgress.Content = "-";
+            lblTotalProgress.Content = "-";
+
+            lstFiles.Visibility = Visibility.Visible;
+            lstFiles.ItemsSource = listOfFiles;
         }
 
         private void btnPath_Click(object sender, RoutedEventArgs e)
